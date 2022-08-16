@@ -31,7 +31,7 @@ size_t min(size_t n1, size_t n2)
 	return (n2);
 }
 
-char *ft_alloc_mem_linepair(char *str1, char* str2, size_t *len1, size_t *len2, size_t n)
+char *ft_alloc_mem_linepair(char *str1, char* str2, size_t *len1, size_t *len2)
 {
 	char *res;
 
@@ -57,7 +57,7 @@ char *ft_strnconcat(char *dest, char *src, size_t start, size_t end)
 		return (NULL);
 	if (start > end || start > ft_strlen(src) || end > ft_strlen(src))
 		return (NULL);
-	res = ft_alloc_mem_linepair(dest, src, &len_dest, &len_src, end - start);
+	res = ft_alloc_mem_linepair(dest, src, &len_dest, &len_src);
 	if (!res)
 		return (NULL);			
 	i = 0;
@@ -88,9 +88,10 @@ char *get_perem(char *str, size_t start, size_t end)
 	if (!res)
 		return (NULL);
 	i = 0;
-	while (i < end)
+	while (i + start < end)
 	{
 		res[i] = str[i + start];
+		i++;
 	}
 	res[i] = '\0';
 	return (res);
@@ -121,25 +122,35 @@ int	insert_var(char **str, t_list *env)
 	{
 		if ((*str)[i] == '$' && (*str)[i + 1])
 		{
+			i++;
 			start = i;
-			while (!ft_isalnum((*str)[i]) || !((*str)[i] = '_'))
+			while (ft_isalnum((*str)[i]) || (*str)[i] == '_')
 			{
 				i++;
 			}
-			perem = get_perem(*str, start + 1, i);
+			perem = get_perem(*str, start, i);
 			key = find_in_env(env, perem);
-			if (key == NULL)
-				res = ft_strnconcat(res, *str, start, i);
-			else
+			if (key != NULL)
+			{
 				res = ft_strnconcat(res, key, 0, ft_strlen(key));
+			}
 		}
-		
-		start = i;
-		while (!ft_isalnum((*str)[i]) && !((*str)[i] = '_'))
+		else if ((*str)[i] == '$' && !(*str)[i + 1])
 		{
+			res = ft_strnconcat(res, (*str), i, i + 1);
 			i++;
 		}
-		res = ft_strnconcat(res, *str, start, i);
+
+		if ((*str)[i] && (*str)[i] != '$')
+		{
+			start = i;
+			while (!((*str)[i] == '\0' || (*str)[i] == '$'))
+			{
+				i++;
+			}
+			res = ft_strnconcat(res, *str, start, i);
+		}
 	}
+	*str = res;
 	return (SUCCES);
 }
